@@ -1,0 +1,5 @@
+# yml 파일을 이용한 application property 관리
+
+#spring Web port
+server:
+  port: 8888
