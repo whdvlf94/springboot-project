@@ -1,3 +1,7 @@
 #spring Web port
 server:
   port: 9999
+
+spring:
+  messages:
+    basename: messages
