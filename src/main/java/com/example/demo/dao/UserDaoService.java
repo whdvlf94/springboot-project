@@ -11,8 +11,8 @@ import java.util.List;
 public class UserDaoService {
     private static List<User> users = new ArrayList<>();
 
-    private static int userCount = 3;
-
+//    private static int userCount = 3;
+    int nextid = 3;
     static {
         users.add(new User(1, "Kenneth", new Date(), "test1", "701010-1111111"));
         users.add(new User(2, "Alice", new Date(), "test2", "455110-2222222"));
@@ -31,6 +31,13 @@ public class UserDaoService {
             }
         }
         return null;
+    }
+
+    public User create(User createuser) {
+        createuser.setId(nextid);
+        createuser.setJoinDate(new Date());
+        users.add(createuser);
+        return createuser;
     }
 }
 

@@ -11,11 +11,8 @@ import org.springframework.hateoas.EntityModel;
 //import org.springframework.hateoas.Resource;
 //import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilderDsl;
 import org.springframework.http.converter.json.MappingJacksonValue;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -24,6 +21,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 //import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -33,6 +31,7 @@ public class UserController {
 
     @Autowired
     private UserDaoService service;
+
 
     @GetMapping("/users")
     public MappingJacksonValue getUserList() {
@@ -46,7 +45,7 @@ public class UserController {
 
 
         //HATEOAS link 설정 작업
-        for(User user: list) {
+        for (User user : list) {
             EntityModel<User> model = new EntityModel<>(user);
             //User entity에 대해 각각의 EntityModel 객체를 생성한다.
             WebMvcLinkBuilder linkTo = linkTo(methodOn(this.getClass()).getUser(user.getId()));
@@ -88,6 +87,34 @@ public class UserController {
 
         return mapping;
     }
+
+    @PostMapping("/users")
+    public MappingJacksonValue create(@RequestBody User createuser) {
+        User user = service.create(createuser);
+        List<User> list = service.getUserList();
+
+        //HATEOAS
+
+        EntityModel<User> model = new EntityModel<>(user);
+        WebMvcLinkBuilder linkTo = linkTo(methodOn(this.getClass()).getUser(user.getId()));
+        model.add(linkTo.withRel("user-detail"));
+        list.add(user);
+
+
+        //Filter
+        SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter
+                .filterOutAllExcept("id", "name", "joinDate", "ssn");
+        FilterProvider provider = new SimpleFilterProvider()
+                .addFilter("UserInfo", filter);
+
+        MappingJacksonValue mapping = new MappingJacksonValue(list);
+        mapping.setFilters(provider);
+
+        return mapping;
+
+    }
+
+    @PutMapping("/users/{id}")
 
     @GetMapping("/admin/users/{id}")
     public MappingJacksonValue getUserByAdmin(@PathVariable(value = "id") Integer id) {
