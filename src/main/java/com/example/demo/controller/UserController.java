@@ -21,7 +21,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 //import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -91,14 +90,11 @@ public class UserController {
     @PostMapping("/users")
     public MappingJacksonValue create(@RequestBody User createuser) {
         User user = service.create(createuser);
-        List<User> list = service.getUserList();
 
         //HATEOAS
-
         EntityModel<User> model = new EntityModel<>(user);
         WebMvcLinkBuilder linkTo = linkTo(methodOn(this.getClass()).getUser(user.getId()));
         model.add(linkTo.withRel("user-detail"));
-        list.add(user);
 
 
         //Filter
@@ -107,7 +103,7 @@ public class UserController {
         FilterProvider provider = new SimpleFilterProvider()
                 .addFilter("UserInfo", filter);
 
-        MappingJacksonValue mapping = new MappingJacksonValue(list);
+        MappingJacksonValue mapping = new MappingJacksonValue(model);
         mapping.setFilters(provider);
 
         return mapping;
@@ -115,9 +111,53 @@ public class UserController {
     }
 
     @PutMapping("/users/{id}")
+    public MappingJacksonValue update(@PathVariable Integer id , @RequestBody User updateuser) {
+        //@PathVariable을 이용하여 updateuser 내에 id 값을 삽입해 준다.
+        updateuser.setId(id);
+        User user = service.update(updateuser);
+
+        //HATEOAS
+        EntityModel<User> model = new EntityModel<>(user);
+        WebMvcLinkBuilder linkTo = linkTo(methodOn(this.getClass()).getUser(user.getId()));
+        model.add(linkTo.withRel("user-detail"));
+
+
+        //Filter
+        SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter
+                .filterOutAllExcept("id", "name", "joinDate", "ssn");
+        FilterProvider provider = new SimpleFilterProvider()
+                .addFilter("UserInfo", filter);
+
+        MappingJacksonValue mapping = new MappingJacksonValue(model);
+        mapping.setFilters(provider);
+
+        return mapping;
+    }
+
+    @DeleteMapping("/users/{id}")
+    public MappingJacksonValue delete(@PathVariable Integer id) {
+        User user = service.delete(id);
+
+        //HATEOAS
+        EntityModel<User> model = new EntityModel<>(user);
+        WebMvcLinkBuilder linkTo = linkTo(methodOn(this.getClass()).getUser(user.getId()));
+        model.add(linkTo.withRel("user-detail"));
+
+
+        //Filter
+        SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter
+                .filterOutAllExcept("id", "name", "joinDate", "ssn");
+        FilterProvider provider = new SimpleFilterProvider()
+                .addFilter("UserInfo", filter);
+
+        MappingJacksonValue mapping = new MappingJacksonValue(model);
+        mapping.setFilters(provider);
+
+        return mapping;
+    }
 
     @GetMapping("/admin/users/{id}")
-    public MappingJacksonValue getUserByAdmin(@PathVariable(value = "id") Integer id) {
+    public MappingJacksonValue getUserByAdmin(@PathVariable Integer id) {
         //데이터 형이 다른 경우 value를 통해 작성 가능
 
         User user = service.getUser(id);
@@ -140,7 +180,7 @@ public class UserController {
 
     // spring-boot 2.1
     @GetMapping("/hateoas/users/{id}")
-    public MappingJacksonValue retrieveUser(@PathVariable(value = "id") Integer id) {
+    public MappingJacksonValue retrieveUser(@PathVariable Integer id) {
         User user = service.getUser(id);
 
         if (user == null) {
